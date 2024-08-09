@@ -47,8 +47,62 @@ namespace Sudoko_Creater
 
         static int[,] random_board(int target_nums)
         {
+        Random rand = new Random();
+
+            if(target_nums > 30)
+            {
+            //too slow to randomly generate
+            int[,] small_board = random_board(23);
+            int[,] big_board = sudoku_solver(small_board,81-target_nums);
+            
+            //the solver can add mutiple numbers at once
+            int zeros = 0;
+            for(int i = 0;i < 9; i++)
+            {
+                for(int i2 = 0; i2< 9;i2++)
+                {
+                    if(big_board[i,i2] == 0)
+                    {
+                        zeros++;
+                    }
+                }
+            }
+            if(zeros == 81 - target_nums)
+            {
+                return big_board;
+            }
+            else
+            {
+                while(zeros < 81 - target_nums)
+                {
+                    int x = rand.Next(0,9);
+                    int y = rand.Next(0,9);
+                    if(big_board[x,y] != 0)
+                    {
+                        big_board[x,y] = 0;
+                        zeros++;
+                    }
+                }
+                int[,] temp_board = new int[9,9];
+                for(int i = 0;i < 9; i++)
+                {
+                    for(int i2 = 0; i2 < 9; i2++)
+                    {
+                        temp_board[i,i2] = big_board[i,i2];
+                    }
+                }
+                if(is_solved(sudoku_solver(temp_board)))
+                {
+                    return big_board;
+                }
+                else
+                {
+                    return random_board(target_nums);
+                }
+            }
+
+            }
             int[,] board = new int[9,9];
-            Random rand = new Random();
             int number_of_nums = 0;
             while(number_of_nums < target_nums)
             {
@@ -89,7 +143,7 @@ namespace Sudoko_Creater
                     solving_board[i,i2] = board[i,i2];
                 }
             }
-            if(sudoku_solver(solving_board))
+            if(is_solved(sudoku_solver(solving_board)))
             {
                 return board;
             }
@@ -306,9 +360,23 @@ namespace Sudoko_Creater
         }
 
 
-        static bool sudoku_solver(int[,] board)
+        static int[,] sudoku_solver(int[,] board,int completness = 0)
         {
-            
+            int zeros = 0;
+            for(int i = 0;i < 9;i++)
+            {
+                for(int i2 = 0;i2 < 9; i2++)
+                {
+                    if(board[i,i2] == 0)
+                    {
+                        zeros++;
+                    }
+                }
+            }
+            if(zeros < completness)
+            {
+                return board;
+            }
         /* solving steps:
             1. check each numbers column, row and box and fill in any that have only 1 spot
             repeat until stuck
@@ -317,30 +385,7 @@ namespace Sudoko_Creater
             3. when stuck again, check if any number box spots are all on 1 coloumn or row, if so remove any
             other spots in that row or column
         */
-        for(int i = 0;i<9;i++)
-        {
-            for(int i2 = 0;i2<9;i2++)
-            {
-                Console.Write(board[i2,8-i]+" ");
-            }
-            Console.WriteLine("");
-        }
-        Console.WriteLine("");
-        bool solved = true;
-        for(int i = 0;i < 9;i++)
-        {
-            for(int i2 = 0; i2 < 9;i2++)
-            {
-                if(board[i,i2] == 0)
-                {
-                    solved = false;
-                }
-            }
-        }
-        if(solved)
-        {
-            return true;
-        }
+
         // iterate through nums 1-9 and each num's boxes, rows and columns
         bool num_added = false;
 
@@ -549,10 +594,42 @@ namespace Sudoko_Creater
             return sudoku_solver(board);
         }
 
-            return false;
+            return board;
         }
         
+        static bool is_solved(int[,] board)
+        {
 
+            for(int i = 0;i<9;i++)
+            {
+                for(int i2 = 0;i2<9;i2++)
+                {
+                    Console.Write(board[i2,8-i]+" ");
+                }
+                Console.WriteLine("");
+            }
+            Console.WriteLine("");
+            bool solved = true;
+            for(int i = 0;i < 9;i++)
+            {
+                for(int i2 = 0; i2 < 9;i2++)
+                {
+                    if(board[i,i2] == 0)
+                    {
+                        solved = false;
+                    }
+                }
+            }
+            if(solved)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
 
 
         static void Main(string[] args)
